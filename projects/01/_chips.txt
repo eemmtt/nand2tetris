@@ -1,0 +1,16 @@
+Chipset checklist for project 1
+1- And.hdl
+1- And16.hdl
+1- DMux.hdl
+1- DMux4Way.hdl
+1- DMux8Way.hdl
+1- Mux.hdl
+1- Mux16.hdl
+1- Mux4Way16.hdl
+1- Mux8Way16.hdl
+1- Not.hdl
+1- Not16.hdl
+1- Or.hdl
+1- Or16.hdl
+1- Or8Way.hdl
+1- Xor.hdl

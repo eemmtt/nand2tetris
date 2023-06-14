@@ -1,0 +1,54 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/01/Mux.hdl
+
+/** 
+ * Multiplexor:
+ * out = a if sel == 0
+ *       b otherwise
+ */
+
+CHIP Mux {
+    IN a, b, sel;
+    OUT out;
+
+    PARTS:
+    // Put your code here:
+    //Not(in=sel,out=notSel);
+    //And(a=a,b=notSel,out=sANDa);
+    //And(a=sel,b=b,out=sANDb);
+    //Xor(a=sANDa,b=sANDb,out=out); 
+    //9
+
+    //Not(in=sel,out=notSel);
+    //And(a=a,b=notSel,out=nsANDa);
+    //And(a=sel,b=b,out=sANDb);
+    //Or(a=nsANDa,b=sANDb,out=out); 
+    //8
+
+    Not(in=sel,out=notSel);
+    Nand(a=a,b=notSel,out=sNANDa);
+    Nand(a=sel,b=b,out=sNANDb);
+    Nand(a=sNANDa,b=sNANDb,out=out);
+    //4
+
+}
+
+/*
+a | b | sel | out
+0 | 0 | 0   | 0
+0 | 0 | 1   | 0
+1 | 0 | 0   | 1     a'b'c 
+1 | 0 | 1   | 0
+0 | 1 | 0   | 0
+0 | 1 | 1   | 1     'abc
+1 | 1 | 0   | 1     ab'c
+1 | 1 | 1   | 1     abc
+
+mux(a,b,sel) = a'b'c + ab'c + 'abc + abc
+... when selecting, independent variables are irrelevant...
+mux(a,b,sel) = (not(s) AND A) OR (s AND B) "mux(...) returns 1 when..."
+... =           not(not(not(s) AND A) AND not(s AND B))
+... =           (not(s) NAND A) NAND (s NAND b)
+*/

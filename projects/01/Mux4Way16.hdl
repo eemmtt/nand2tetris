@@ -1,0 +1,45 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/01/Mux4Way16.hdl
+
+/**
+ * 4-way 16-bit multiplexor:
+ * out = a if sel == 00
+ *       b if sel == 01
+ *       c if sel == 10
+ *       d if sel == 11
+ */
+
+CHIP Mux4Way16 {
+    IN a[16], b[16], c[16], d[16], sel[2];
+    OUT out[16];
+
+    PARTS:
+    // Put your code here:
+    //Not(in=sel[1],out=ns1);
+    //Not(in=sel[0],out=ns0);
+    //Nand(a=ns1,b=ns0,out=nan0);
+    //Nand(a=ns1,b=sel[0],out=nan1);
+    //Nand(a=sel[1],b=ns0,out=nan2);
+    //Nand(a=sel[1],b=sel[0],out=nan3);
+    //Mux16(a = a, b = false, sel = nan0, out = out0);
+    //Mux16(a = b, b = false, sel = nan1, out = out1);
+    //Mux16(a = c, b = false, sel = nan2, out = out2);
+    //Mux16(a = d, b = false, sel = nan3, out = out3);
+    //Or16(a = out0, b = out1, out = out4);
+    //Or16(a = out2, b = out3, out = out5);
+    //Or16(a = out4, b = out5, out = out);
+    //lol so tortured
+
+    Mux16(a=a, b=b, sel=sel[0], out=out1);
+    Mux16(a=c, b=d, sel=sel[0], out=out2);
+    Mux16(a=out1, b=out2, sel=sel[1], out=out)
+}
+
+/*
+(not(sel[0]) and not(sel[1])    and a) or
+(not(sel[0]) and sel[1]         and b) or
+(sel[0] and not(sel[1])         and c) or
+(sel[0] and sel[1]              and d)
+*/
