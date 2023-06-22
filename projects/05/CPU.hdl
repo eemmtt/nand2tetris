@@ -40,4 +40,43 @@ CHIP CPU {
 
     PARTS:
     // Put your code here:
+    // Instruction type A or C
+    DMux(in=true, sel=instruction[15], a=IsTypeA, b=isTypeC);
+    // Feed Register A from instruction[16] or ALU
+    Mux16(a=ALUOut, b=instruction, sel=IsTypeA, out=MuxAorALU);
+    
+    DRegister(in=ALUOut, load=true, out=DRegOut);
+    ARegister(in=MuxAorALU, load=true, out=ARegOut, out=addressM);
+    Mux16(a=ARegOut, b=inM, sel=instruction[12], out=MuxAMOut); // Mux(A,M)
+    ALU(
+        // IN
+        x=,
+        y=,
+        zx=,
+        nx=,
+        zy=,
+        ny=,
+        f=,
+        no=,
+
+        // OUT
+        out=ALUOut,
+        zr=,
+        ng=,
+    );
+    //PC load == 1 when jjj != 0, else load == 0 and inc == 1
+    Or(a=instruction[0], b=instruction[1], out=Or1);
+    Or(a=Or1, b=instruction[2], out= ....????? )
+    PC(in=ARegOut, load=, inc=, reset=reset, out=);
 }
+
+/*
+instruction[16]->   0***,****,****,**** = A Instruction
+                    1***,****,****,**** = C Instruction
+
+C Instruction =     1__a,cccc,ccdd,djjj
+                    a = feed ALU from A or M
+                    c = ALU control bits (6 total)
+                    d = which registers get ALU output
+                    j = next instruction to fetch ("jump")
+*/
