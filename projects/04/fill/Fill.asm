@@ -12,3 +12,65 @@
 // the screen should remain fully clear as long as no key is pressed.
 
 // Put your code here.
+
+
+@8192
+D=A
+@n
+M=D     //n=8192 (32x256)
+
+
+(LOOP)
+    //i=0
+    @i
+    M=0     
+
+    //If no key pressed, draw white. Else black
+    @KBD
+    D=M
+    @WHITE
+    D;JEQ   
+    @BLACK
+    0;JMP
+
+
+(WHITE)
+    @i
+    D=M
+    @n
+    D=D-M
+    @LOOP
+    D;JEQ   //if i==n, goto LOOP
+
+    @SCREEN
+    D=A
+    @i
+    A=D+M
+    M=0    //RAM[SCREEN+i] = 0
+
+    @i
+    M=M+1   //i++
+
+    @WHITE
+    0;JMP   //goto WHITE
+
+(BLACK)
+    @i
+    D=M
+    @n
+    D=D-M
+    @LOOP
+    D;JEQ   //if i==n, goto LOOP
+
+    @SCREEN
+    D=A
+    @i
+    A=D+M
+    M=-1    //RAM[SCREEN+i] = -1
+
+    @i
+    M=M+1   //i++
+
+    @BLACK
+    0;JMP   //goto BLACK
+
