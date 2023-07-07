@@ -11,8 +11,8 @@
  * Executes the inputted instruction according to the Hack machine 
  * language specification. The D and A in the language specification
  * refer to CPU-resident registers, while M refers to the external
- * memory location addressed by A, i.e. to Memory[A]. The inM input 
- * holds the value of this location. If the current instruction needs 
+ * memory location addressed by A, i.e. to Memory[A]. 
+ * The inM input holds the value of this location. If the current instruction needs 
  * to write a value to M, the value is placed in outM, the address 
  * of the target location is placed in the addressM output, and the 
  * writeM control bit is asserted. (When writeM==0, any value may 
@@ -39,16 +39,35 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
-    // Instruction type A or C
-    DMux(in=true, sel=instruction[15], a=IsTypeA, b=isTypeC);
     // Feed Register A from instruction[] or ALU
-    Mux16(a=ALUOut, b=instruction, sel=IsTypeA, out=MuxAorALU);
-    
-    ARegister(in=MuxAorALU, load=instruction[5], out=ARegOut, out[0..14]=addressM);
-    DRegister(in=ALUOut, load=instruction[4], out=DRegOut);
-    Mux16(a=false, b=ALUOut, sel=instruction[3], out=outM);
-    Mux16(a=ARegOut, b=inM, sel=instruction[12], out=MuxAMOut); // Mux(A,M)
+    Mux16(a=instruction, b=ALUOut, sel=instruction[15], out=MuxAorALU);
+    And(a=instruction[15], b=instruction[3], out=writeM);
+    //Logic for loading ARegister
+    Not(in=instruction[15], out=IsA);
+    Or(a=instruction[5], b=IsA, out=LoadA);
+    ARegister(
+        in=MuxAorALU, 
+        load=LoadA, 
+        out=ARegOut, 
+        out[0..14]=addressM
+    );
+    DRegister(
+        in=ALUOut, 
+        load=instruction[4], 
+        out=DRegOut
+    );
+    Mux16(
+        a=false, 
+        b=ALUOut, 
+        sel=instruction[3], 
+        out=outM
+    );
+    Mux16(
+        a=ARegOut, 
+        b=inM, 
+        sel=instruction[12], 
+        out=MuxAMOut
+    );
     ALU(
         // IN
         x=DRegOut,
@@ -65,9 +84,8 @@ CHIP CPU {
         zr=zrOut,
         ng=ngOut
     );
-    //Take ALUOut and use ddd to determine destination
-    
     //PC.. some logic based on ALU outputs and jjj...
+    And(a=instruction[2], b=ngOut, out=j1AndNg);
     PC(in=ARegOut, load=false, inc=true, reset=reset, out[0..14]=pc);
 }
 
@@ -75,15 +93,14 @@ CHIP CPU {
 instruction[16]->   0***,****,****,**** = A Instruction
                     1***,****,****,**** = C Instruction
 
-C Instruction =     1__a,cccc,ccdd,djjj
-                    0__1101110 100 000
-                    a = feed ALU from A or M
+C Instruction =     1**a,cccc,ccdd,djjj
+                    a = feed ALU from A or M (instruction[12])
                     c = ALU control bits (6 total)
-                    d = which registers get ALU output
+                    d = "destination", which registers get ALU output 
                         d1 -> goes to A Reg (instruction[5])
                         d2 -> goes to D Reg (instruction[4])
                         d3 -> goes to M Reg (instruction[3])
-                    j = next instruction to fetch ("jump")
+                    j = "jump", next instruction to fetch
                         j1 ALUOut < 0   | ngOut == 1 (instruction[2])
                         j2 ALUOut == 0  | zrOut == 1 (instruction[1])
                         j3 ALUOut > 0   | ngOut == 0 (instruction[0])
