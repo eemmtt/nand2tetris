@@ -42,32 +42,33 @@ CHIP CPU {
     // Put your code here:
     // Instruction type A or C
     DMux(in=true, sel=instruction[15], a=IsTypeA, b=isTypeC);
-    // Feed Register A from instruction[16] or ALU
+    // Feed Register A from instruction[] or ALU
     Mux16(a=ALUOut, b=instruction, sel=IsTypeA, out=MuxAorALU);
     
-    DRegister(in=ALUOut, load=true, out=DRegOut);
-    ARegister(in=MuxAorALU, load=true, out=ARegOut, out=addressM);
+    ARegister(in=MuxAorALU, load=instruction[5], out=ARegOut, out[0..14]=addressM);
+    DRegister(in=ALUOut, load=instruction[4], out=DRegOut);
+    Mux16(a=false, b=ALUOut, sel=instruction[3], out=outM);
     Mux16(a=ARegOut, b=inM, sel=instruction[12], out=MuxAMOut); // Mux(A,M)
     ALU(
         // IN
-        x=,
-        y=,
-        zx=,
-        nx=,
-        zy=,
-        ny=,
-        f=,
-        no=,
+        x=DRegOut,
+        y=MuxAMOut,
+        zx=instruction[11],
+        nx=instruction[10],
+        zy=instruction[9],
+        ny=instruction[8],
+        f= instruction[7],
+        no=instruction[6],
 
         // OUT
         out=ALUOut,
-        zr=,
-        ng=,
+        zr=zrOut,
+        ng=ngOut
     );
-    //PC load == 1 when jjj != 0, else load == 0 and inc == 1
-    Or(a=instruction[0], b=instruction[1], out=Or1);
-    Or(a=Or1, b=instruction[2], out= ....????? )
-    PC(in=ARegOut, load=, inc=, reset=reset, out=);
+    //Take ALUOut and use ddd to determine destination
+    
+    //PC.. some logic based on ALU outputs and jjj...
+    PC(in=ARegOut, load=false, inc=true, reset=reset, out[0..14]=pc);
 }
 
 /*
@@ -75,8 +76,15 @@ instruction[16]->   0***,****,****,**** = A Instruction
                     1***,****,****,**** = C Instruction
 
 C Instruction =     1__a,cccc,ccdd,djjj
+                    0__1101110 100 000
                     a = feed ALU from A or M
                     c = ALU control bits (6 total)
                     d = which registers get ALU output
+                        d1 -> goes to A Reg (instruction[5])
+                        d2 -> goes to D Reg (instruction[4])
+                        d3 -> goes to M Reg (instruction[3])
                     j = next instruction to fetch ("jump")
+                        j1 ALUOut < 0   | ngOut == 1 (instruction[2])
+                        j2 ALUOut == 0  | zrOut == 1 (instruction[1])
+                        j3 ALUOut > 0   | ngOut == 0 (instruction[0])
 */
