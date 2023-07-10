@@ -86,7 +86,7 @@ CHIP CPU {
     );
     //PC.. some logic based on ALU outputs and jjj...
     And(a=instruction[2], b=ngOut, out=j1AndNg);
-    PC(in=ARegOut, load=false, inc=true, reset=reset, out[0..14]=pc);
+    PC(in=ARegOut, load=falsel, inc=true, reset=reset, out[0..14]=pc);
 }
 
 /*
