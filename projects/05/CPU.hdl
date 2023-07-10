@@ -84,9 +84,46 @@ CHIP CPU {
         zr=zrOut,
         ng=ngOut
     );
-    //PC.. some logic based on ALU outputs and jjj...
-    And(a=instruction[2], b=ngOut, out=j1AndNg);
-    PC(in=ARegOut, load=false, inc=true, reset=reset, out[0..14]=pc);
+    // PC.. some logic based on ALU outputs and jjj...
+    // Check for jump conditions
+    Not(in=ngOut, out=NotNgOut);
+    Not(in=zrOut, out=NonZrOut);
+    And(a=NotNgOut, b=NonZrOut, out=PosNgOut);
+    //JLT
+    And(a=instruction[2], b=ngOut, out=j1AndNgOut);
+    And(a=j1AndNgOut, b=NonZrOut, out=JLT);
+    //JLE
+    And(a=j1AndNgOut, b=zrOut, out=JLE);
+    //JGT
+    And(a=instruction[0], b=PosNgOut, out=j3AndPosNgOut);
+    And(a=j3AndPosNgOut, b=NonZrOut, out=JGT);
+    //JGE
+    And(a=j3AndPosNgOut, b=zrOut, out=JGE);
+    //JEQ
+    Not(in=instruction[2], out=j1Not);
+    Not(in=instruction[0], out=j3Not);
+    And(a=instruction[1], b=zrOut, out=j2AndZrOut);
+    And(a=j2AndZrOut, b=j1Not, out= j2Andj1NotAndZrOut);
+    And(a=j2Andj1NotAndZrOut, b=j3Not, out= JEQ);
+    //JMP
+    And(a=instruction[2], b=instruction[1], out=j1Andj2);
+    And(a=j1Andj2, b=instruction[0], out=JMP);
+    Or8Way(
+        in[0]=JLT,
+        in[1]=JEQ,
+        in[2]=JGT,
+        in[3]=JLE,
+        in[4]=JGE,
+        in[5]=JMP,
+        in[6..7]=false,
+        out=DoJMP
+    );
+    //Not(in=DoJMP, out=NotDoJMP);
+    Not(in=IsA, out=IsNotA);
+    //And(a=NotDoJMP, b=IsA, out=DoInc);
+    And(a=DoJMP, b=IsNotA, out=DoLoad);
+    Not(in=DoLoad, out=DoInc);
+    PC(in=ARegOut, load=DoLoad, inc=DoInc, reset=reset, out[0..14]=pc);
 }
 
 /*
