@@ -42,7 +42,8 @@ CHIP CPU {
     // Feed Register A from instruction[] or ALU
     Mux16(a=instruction, b=ALUOut, sel=instruction[15], out=MuxAorALU);
     And(a=instruction[15], b=instruction[3], out=writeM);
-    //Logic for loading ARegister
+
+    // Logic for loading ARegister
     Not(in=instruction[15], out=IsA);
     Or(a=instruction[5], b=IsA, out=LoadA);
     ARegister(
@@ -51,9 +52,12 @@ CHIP CPU {
         out=ARegOut, 
         out[0..14]=addressM
     );
+    
+    // D Reg from loading on A instruction
+    And(a=instruction[4], b=IsNotA, out=LoadD);
     DRegister(
         in=ALUOut, 
-        load=instruction[4], 
+        load=LoadD, 
         out=DRegOut
     );
     Mux16(
@@ -84,7 +88,7 @@ CHIP CPU {
         zr=zrOut,
         ng=ngOut
     );
-    // PC.. some logic based on ALU outputs and jjj...
+    // PC
     // Define additional control bit for Positive ALU Output 
     Not(in=zrOut, out=NotZr);
     Not(in=ngOut, out=NotNg);
